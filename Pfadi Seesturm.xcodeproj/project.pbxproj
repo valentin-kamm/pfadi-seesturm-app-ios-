@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A70F24762CB51041003E34B4 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = A70F24752CB51037003E34B4 /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		A7099AFA2CA991CF00314440 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		A7099AE92CA991CE00314440 /* Pfadi Seesturm.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Pfadi Seesturm.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A7099AF92CA991CF00314440 /* Pfadi SeesturmTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Pfadi SeesturmTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A7099B032CA991CF00314440 /* Pfadi SeesturmUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Pfadi SeesturmUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A70F24752CB51037003E34B4 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +80,7 @@
 		A7099AE02CA991CE00314440 = {
 			isa = PBXGroup;
 			children = (
+				A70F24752CB51037003E34B4 /* .gitignore */,
 				A7099AEB2CA991CE00314440 /* Pfadi Seesturm */,
 				A7099AFC2CA991CF00314440 /* Pfadi SeesturmTests */,
 				A7099B062CA991CF00314440 /* Pfadi SeesturmUITests */,
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A70F24762CB51041003E34B4 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
