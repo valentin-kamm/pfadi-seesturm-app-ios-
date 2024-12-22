@@ -1,0 +1,33 @@
+{
+  "originHash" : "65a9ac92c39299b6ef8f589192d5a7d78c247e580811f3c858ea3af348b18bf3",
+  "pins" : [
+    {
+      "identity" : "appauth-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/openid/AppAuth-iOS.git",
+      "state" : {
+        "revision" : "2781038865a80e2c425a1da12cc1327bcd56501f",
+        "version" : "1.7.6"
+      }
+    },
+    {
+      "identity" : "kingfisher",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/onevcat/Kingfisher.git",
+      "state" : {
+        "revision" : "c0940e241945e6378c01fbd45fd3815579d47ef5",
+        "version" : "8.1.0"
+      }
+    },
+    {
+      "identity" : "richtext",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NuPlay/RichText.git",
+      "state" : {
+        "revision" : "8abbc59142523ac18f36fcf07414c2f85a2e75ae",
+        "version" : "2.4.1"
+      }
+    }
+  ],
+  "version" : 3
+}
