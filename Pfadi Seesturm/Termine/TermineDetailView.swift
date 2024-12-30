@@ -12,6 +12,17 @@ struct TermineDetailView: View {
     
     let event: TransformedCalendarEventResponse
     let calendarInfo: CalendarInfo
+    let isLeitungsteam: Bool
+    
+    init(
+        event: TransformedCalendarEventResponse,
+        calendarInfo: CalendarInfo,
+        isLeitungsteam: Bool = false
+    ) {
+        self.event = event
+        self.calendarInfo = calendarInfo
+        self.isLeitungsteam = isLeitungsteam
+    }
     
     var body: some View {
         ScrollView {
@@ -21,13 +32,23 @@ struct TermineDetailView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                if isLeitungsteam {
+                    CustomCardView(shadowColor: Color.clear, backgroundColor: Color(UIColor.systemGray5)) {
+                        Text("Termin Leitungsteam")
+                            .lineLimit(2)
+                            .padding(8)
+                            .font(.footnote)
+                            .frame(maxHeight: .infinity)
+                            .foregroundStyle(Color.SEESTURM_RED)
+                    }
+                }
                 Label {
                     Text(event.fullDateTimeString)
                         .foregroundStyle(Color.secondary)
                         .font(.subheadline)
                 } icon: {
                     Image(systemName: "calendar.badge.clock")
-                        .foregroundStyle(Color.SEESTURM_GREEN)
+                        .foregroundStyle(isLeitungsteam ? Color.SEESTURM_RED : Color.SEESTURM_GREEN)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 if let location = event.location {
@@ -37,7 +58,7 @@ struct TermineDetailView: View {
                             .font(.subheadline)
                     } icon: {
                         Image(systemName: "location")
-                            .foregroundStyle(Color.SEESTURM_GREEN)
+                            .foregroundStyle(isLeitungsteam ? Color.SEESTURM_RED : Color.SEESTURM_GREEN)
                     }
                     .labelStyle(.titleAndIcon)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -68,6 +89,7 @@ struct TermineDetailView: View {
                 }) {
                     Image(systemName: "calendar.badge.plus")
                 }
+                .foregroundStyle(isLeitungsteam ? Color.SEESTURM_RED : Color.SEESTURM_GREEN)
             }
         }
     }
@@ -83,6 +105,6 @@ struct TermineDetailView: View {
 #Preview("Ganztägiger, mehrtägiger Anlass") {
     TermineDetailView(event: TermineCardViewPreviewExtension().allDayMultiDayEventData(), calendarInfo: CalendarType.termine.info)
 }
-#Preview("Ganztägiger, eintägiger Anlass") {
-    TermineDetailView(event: TermineCardViewPreviewExtension().allDayOneDayEventData(), calendarInfo: CalendarType.termine.info)
+#Preview("Ganztägiger, eintägiger Anlass (Leitungsteam)") {
+    TermineDetailView(event: TermineCardViewPreviewExtension().allDayOneDayEventData(), calendarInfo: CalendarType.termine.info, isLeitungsteam: true)
 }

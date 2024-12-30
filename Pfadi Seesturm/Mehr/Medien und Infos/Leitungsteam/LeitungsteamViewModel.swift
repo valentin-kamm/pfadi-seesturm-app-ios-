@@ -10,8 +10,7 @@ import SwiftUI
 @MainActor
 class LeitungsteamViewModel: ObservableObject {
     
-    @Published var leitungsteam: LeitungsteamResponse = LeitungsteamResponse()
-    @Published var loadingState: SeesturmLoadingState = .none
+    @Published var loadingState: SeesturmLoadingState<LeitungsteamResponse, PfadiSeesturmAppError> = .none
     
     private let networkManager = LeitungsteamNetworkManager.shared
     
@@ -23,8 +22,7 @@ class LeitungsteamViewModel: ObservableObject {
         do {
             let response = try await networkManager.fetchMembers()
             withAnimation {
-                self.leitungsteam = response
-                self.loadingState = .success
+                self.loadingState = .result(.success(response))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -35,14 +33,14 @@ class LeitungsteamViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.loadingState = .error(error: pfadiSeesturmError)
+                    self.loadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.loadingState = .error(error: pfadiSeesturmError)
+                self.loadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         

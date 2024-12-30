@@ -7,82 +7,56 @@
 
 import SwiftUI
 
-// loading state
-enum SeesturmLoadingState {
-    case none
-    case success
-    case error(error: PfadiSeesturmAppError)
-    case loading
-    case errorWithReload(error: PfadiSeesturmAppError)
-}
-extension SeesturmLoadingState {
-    var scrollingDisabled: Bool {
+// notification topics
+enum SeesturmNotificationTopic: Identifiable {
+    case schöpflialarm
+    case schöpflialarmReaktion
+    case aktuell
+    case biberAktivitäten
+    case wolfAktivitäten
+    case pfadiAktivitäten
+    case pioAktivitäten
+    
+    var id: UUID {
         switch self {
-        case .loading, .errorWithReload(_), .none:
-            return true
-        default:
-            return false
+        case .schöpflialarm:
+            UUID()
+        case .schöpflialarmReaktion:
+            UUID()
+        case .aktuell:
+            UUID()
+        case .biberAktivitäten:
+            UUID()
+        case .wolfAktivitäten:
+            UUID()
+        case .pfadiAktivitäten:
+            UUID()
+        case .pioAktivitäten:
+            UUID()
         }
     }
-    var taskShouldRun: Bool {
+    
+    var topicString: String {
         switch self {
-        case .none, .errorWithReload(_):
-            return true
-        default:
-            return false
+        case .schöpflialarm:
+            "schoepflialarm_v2"
+        case .schöpflialarmReaktion:
+            "schoepflialarmReaktion_v2"
+        case .aktuell:
+            "aktuell_v2"
+        case .biberAktivitäten:
+            "aktivitaetBiberstufe_v2"
+        case .wolfAktivitäten:
+            "aktivitaetWolfsstufe_v2"
+        case .pfadiAktivitäten:
+            "aktivitaetPfadistufe_v2"
+        case .pioAktivitäten:
+            "aktivitaetPiostufe_v2"
         }
     }
-    var infiniteScrollTaskShouldRun: Bool {
-        switch self {
-        case .none, .errorWithReload(_), .success:
-            return true
-        default:
-            return false
-        }
-    }
-    var isError: Bool {
-        switch self {
-        case .error(_):
-            return true
-        default:
-            return false
-        }
-    }
+    
 }
 
-enum SeesturmNaechsteAktivitaetHomeLoadingState {
-    case none
-    case success(aktivitaet: TransformedCalendarEventResponse?)
-    case error(error: PfadiSeesturmAppError)
-    case loading
-    case errorWithReload(error: PfadiSeesturmAppError)
-}
-extension SeesturmNaechsteAktivitaetHomeLoadingState {
-    var scrollingDisabled: Bool {
-        switch self {
-        case .loading, .errorWithReload(_), .none:
-            return true
-        default:
-            return false
-        }
-    }
-    var taskShouldRun: Bool {
-        switch self {
-        case .none, .errorWithReload(_):
-            return true
-        default:
-            return false
-        }
-    }
-    var infiniteScrollTaskShouldRun: Bool {
-        switch self {
-        case .none, .errorWithReload(_), .success:
-            return true
-        default:
-            return false
-        }
-    }
-}
 
 // stufen der pfadi seesturm
 enum SeesturmStufe: Codable, Comparable, Hashable {
@@ -90,6 +64,21 @@ enum SeesturmStufe: Codable, Comparable, Hashable {
     case wolf
     case pfadi
     case pio
+    
+    init(id: Int) throws {
+        switch id {
+        case 0:
+            self = .biber
+        case 1:
+            self = .wolf
+        case 2:
+            self = .pfadi
+        case 3:
+            self = .pio
+        default:
+            throw PfadiSeesturmAppError.invalidInput(message: "Unbekannte Stufe.")
+        }
+    }
     
     var id: Int {
         switch self {
@@ -103,7 +92,6 @@ enum SeesturmStufe: Codable, Comparable, Hashable {
             return 3
         }
     }
-    
     var description: String {
         switch self {
         case .biber:
@@ -116,7 +104,6 @@ enum SeesturmStufe: Codable, Comparable, Hashable {
             return "Piostufe"
         }
     }
-    
     var calendar: CalendarType {
         switch self {
         case .biber:
@@ -129,7 +116,6 @@ enum SeesturmStufe: Codable, Comparable, Hashable {
             return .aktivitaetenPiostufe
         }
     }
-    
     var icon: Image {
         switch self {
         case .biber:
@@ -142,7 +128,6 @@ enum SeesturmStufe: Codable, Comparable, Hashable {
             return Image("pio")
         }
     }
-    
     var color: Color {
         switch self {
         case .biber:
@@ -155,11 +140,10 @@ enum SeesturmStufe: Codable, Comparable, Hashable {
             return Color.SEESTURM_GREEN
         }
     }
-    
-    var allowedActionActivities: [AktivitaetAktionen] {
+    var allowedActionActivities: [AktivitaetAktion] {
         switch self {
         case .biber:
-            return [.abmelden, .anmelden]
+            return [.anmelden, .abmelden]
         case .wolf:
             return [.abmelden]
         case .pfadi:
@@ -168,13 +152,23 @@ enum SeesturmStufe: Codable, Comparable, Hashable {
             return [.abmelden]
         }
     }
-    
 }
 
 // aktivitäten erlaubte aktionen
-enum AktivitaetAktionen: CaseIterable, Identifiable {
+enum AktivitaetAktion: CaseIterable, Identifiable, Codable {
     case anmelden
     case abmelden
+    
+    init(id: Int) throws {
+        switch id {
+        case 1:
+            self = .anmelden
+        case 0:
+            self = .abmelden
+        default:
+            throw PfadiSeesturmAppError.invalidInput(message: "Unbekannte An-/Abmelde-Art.")
+        }
+    }
     
     var id: Int {
         switch self {
@@ -184,7 +178,6 @@ enum AktivitaetAktionen: CaseIterable, Identifiable {
             return 0
         }
     }
-    
     var nomen: String {
         switch self {
         case .anmelden:
@@ -193,7 +186,14 @@ enum AktivitaetAktionen: CaseIterable, Identifiable {
             return "Abmeldung"
         }
     }
-    
+    var nomenMehrzahl: String {
+        switch self {
+        case .anmelden:
+            return "Anmeldungen"
+        case .abmelden:
+            return "Abmeldungen"
+        }
+    }
     var verb: String {
         switch self {
         case .anmelden:
@@ -202,7 +202,6 @@ enum AktivitaetAktionen: CaseIterable, Identifiable {
             return "abmelden"
         }
     }
-    
     var icon: String {
         switch self {
         case .anmelden:
@@ -211,7 +210,6 @@ enum AktivitaetAktionen: CaseIterable, Identifiable {
             return "xmark.circle"
         }
     }
-    
 }
 
 // aktivitäten erlaubte aktionen
@@ -242,7 +240,7 @@ enum AppMainTab {
 enum CustomButtonStyle {
     case primary
     case secondary
-    case tertiary
+    case tertiary(color: Color = .SEESTURM_GREEN)
 }
 
 // error types for network calls
@@ -256,6 +254,12 @@ enum PfadiSeesturmAppError: LocalizedError {
     case internetConnectionError(message: String)
     case cancellationError(message: String)
     case authError(message: String)
+    case messagingPermissionError(message: String)
+    case messagingError(message: String)
+    case locationPermissionError(message: String)
+    case locationAccuracyError(message: String)
+    case locationError(message: String)
+    case firestoreDocumentDoesNotExistError(message: String)
     case unknownError(message: String)
     
     var errorDescription: String? {
@@ -275,6 +279,18 @@ enum PfadiSeesturmAppError: LocalizedError {
         case .cancellationError(let message):
             return message
         case .authError(let message):
+            return message
+        case .messagingPermissionError(let message):
+            return message
+        case .messagingError(let message):
+            return message
+        case .locationPermissionError(let message):
+            return message
+        case .locationError(let message):
+            return message
+        case .locationAccuracyError(let message):
+            return message
+        case .firestoreDocumentDoesNotExistError(let message):
             return message
         case .unknownError(let message):
             return message
@@ -303,19 +319,23 @@ enum SnackbarType: String {
 // authentication state for the app
 enum AuthState {
     case signedOut
-    case signedInWithHitobito
-    case signingIn(loadingType: AuthLoadingType)
-    case signingOut
+    case signedInWithHitobito(user: FirebaseHitobitoUser)
+    case signingIn
+    case signingOut(user: FirebaseHitobitoUser)
     case error(error: PfadiSeesturmAppError)
-}
-enum AuthLoadingType {
-    case button
-    case fullScreen
 }
 extension AuthState {
     var signInButtonIsLoading: Bool {
         switch self {
-        case .signingIn(.button):
+        case .signingIn:
+            return true
+        default:
+            return false
+        }
+    }
+    var signOutButtonIsLoading: Bool {
+        switch self {
+        case .signingOut:
             return true
         default:
             return false
@@ -329,4 +349,214 @@ extension AuthState {
             return false
         }
     }
+}
+
+enum SeesturmLoadingState<Success, Failure: Error> {
+    case none
+    case loading
+    case result(Result<Success, Failure>)
+    case errorWithReload(error: PfadiSeesturmAppError)
+}
+extension SeesturmLoadingState {
+    var userInteractionDisabled: Bool {
+        switch self {
+        case .loading, .result(.failure), .result(.success):
+            return true
+        default:
+            return false
+        }
+    }
+    var scrollingDisabled: Bool {
+        switch self {
+        case .loading, .errorWithReload(_), .none:
+            return true
+        default:
+            return false
+        }
+    }
+    var taskShouldRun: Bool {
+        switch self {
+        case .none, .errorWithReload(_):
+            return true
+        default:
+            return false
+        }
+    }
+    var infiniteScrollTaskShouldRun: Bool {
+        switch self {
+        case .none, .errorWithReload(_), .result(.success):
+            return true
+        default:
+            return false
+        }
+    }
+    var isError: Bool {
+        switch self {
+        case .result(.failure):
+            return true
+        default:
+            return false
+        }
+    }
+    var isSuccess: Bool {
+        switch self {
+        case .result(.success):
+            return true
+        default:
+            return false
+        }
+    }
+    func failureBinding(from publisher: Published<SeesturmLoadingState>.Publisher, reset: @escaping () -> Void) -> Binding<Bool> {
+        Binding(
+            get: {
+                if case .result(.failure) = self {
+                    return true
+                }
+                return false
+            },
+            set: { _ in
+                reset()
+            }
+        )
+    }
+    func successBinding(from publisher: Published<SeesturmLoadingState>.Publisher, reset: @escaping () -> Void) -> Binding<Bool> {
+        Binding(
+            get: {
+                if case .result(.success) = self {
+                    return true
+                }
+                return false
+            },
+            set: { _ in
+                reset()
+            }
+        )
+    }
+    func loadingBinding(from publisher: Published<SeesturmLoadingState>.Publisher) -> Binding<Bool> {
+        Binding(
+            get: {
+                if case .loading = self {
+                    return true
+                }
+                return false
+            },
+            set: { _ in }
+        )
+    }
+    var errorMessage: String {
+        switch self {
+        case .result(.failure(let error)):
+            return error.localizedDescription
+        default:
+            return "Ein Fehler ist aufgetreten"
+        }
+    }
+    var successMessage: String {
+        switch self {
+        case .result(.success(let data)):
+            if let message = data as? String {
+                return message
+            }
+            else {
+                return "Operation erfolgreich"
+            }
+        default:
+            return ""
+        }
+    }
+    var isLoading: Bool {
+        switch self {
+        case .loading:
+            return true
+        default:
+            return false
+        }
+    }
+}
+extension Dictionary where Value == SeesturmLoadingState<String, PfadiSeesturmAppError> {
+    var hasError: Bool {
+        values.contains { state in
+            if case .result(.failure) = state {
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+    var hasSuccess: Bool {
+        values.contains { state in
+            if case .result(.success) = state {
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+    var hasLoadingElement: Bool {
+        values.contains { state in
+            if case .loading = state {
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+    var firstErrorMessage: String {
+        for state in values {
+            switch state {
+            case .result(.failure(let error)):
+                return error.localizedDescription
+            default:
+                continue
+            }
+        }
+        return "Ein Fehler is aufgetreten"
+    }
+    var firstSuccessMessage: String {
+        for state in values {
+            switch state {
+            case .result(.success(let message)):
+                return message
+            default:
+                continue
+            }
+        }
+        return "Operation erfolgreich"
+    }
+}
+struct FormSection: Hashable, Identifiable {
+    var id = UUID()
+    var header: String
+    var footer: String
+}
+
+enum SchöpflialarmResponseType {
+    case unterwegs
+    case heuteNicht
+    case schonDa
+    
+    var id: Int {
+        switch self {
+        case .unterwegs:
+            return 10
+        case .heuteNicht:
+            return 20
+        case .schonDa:
+            return 30
+        }
+    }
+    
+    init(id: Int) throws {
+        switch id {
+        case 10:
+            self = .unterwegs
+        case 20:
+            self = .heuteNicht
+        case 30:
+            self = .schonDa
+        default:
+            throw PfadiSeesturmAppError.invalidInput(message: "Unbekannte Reaktions-Art für Schöpflialarm.")
+        }
+    }
+    
 }

@@ -10,8 +10,7 @@ import SwiftUI
 @MainActor
 class GalleriesViewModel: ObservableObject {
     
-    @Published var galleries: [PhotoGalleryResponse] = []
-    @Published var loadingState: SeesturmLoadingState = .none
+    @Published var loadingState: SeesturmLoadingState<[PhotoGalleryResponse], PfadiSeesturmAppError> = .none
     
     private let photosNetworkManager = PhotosNetworkManager.shared
     
@@ -24,8 +23,7 @@ class GalleriesViewModel: ObservableObject {
         do {
             let response = try await photosNetworkManager.fetchGalleries(id: id)
             withAnimation {
-                self.galleries = response.galleries
-                self.loadingState = .success
+                self.loadingState = .result(.success(response.galleries))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -36,14 +34,14 @@ class GalleriesViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.loadingState = .error(error: pfadiSeesturmError)
+                    self.loadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.loadingState = .error(error: pfadiSeesturmError)
+                self.loadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         

@@ -111,4 +111,18 @@ class DateTimeUtil {
         
     }
     
+    // get date of next saturday at desired time
+    func nextSaturday(at hour: Int) -> Date {
+        let calendar = Calendar.current
+        let now = Date()
+        guard let nextSaturday = calendar.nextDate(after: now, matching: DateComponents(weekday: 7), matchingPolicy: .nextTime) else {
+            return now
+        }
+        var components = calendar.dateComponents([.year, .month, .day], from: nextSaturday)
+        components.hour = hour
+        components.minute = 0
+        components.second = 0
+        return calendar.date(from: components) ?? Date()
+    }
+    
 }

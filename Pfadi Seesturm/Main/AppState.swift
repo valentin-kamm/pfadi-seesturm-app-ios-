@@ -37,8 +37,9 @@ class AppState: ObservableObject {
     
     // function to navigate to a specific screen from a universal link
     func navigateToFromUniversalLink(url: URL) {
-        let (tab, path) = UniversalLinksHandler.shared.getNavigationDestinationFromUniversalLink(url: url)
-        navigateTo(tab: tab, path: path)
+        if let (tab, path) = UniversalLinksHandler.shared.getNavigationDestinationFromUniversalLink(url: url) {
+            navigateTo(tab: tab, path: path)
+        }
     }
     
     // function to navigate to a specific screen

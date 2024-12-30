@@ -12,8 +12,7 @@ class AktivitaetDetailViewModel: ObservableObject {
     private let calendarNetworkManager = CalendarNetworkManager.shared
     
     @Published var currentEventId: String = ""
-    @Published var event: TransformedCalendarEventResponse = TransformedCalendarEventResponse()
-    @Published var loadingState: SeesturmLoadingState = .none
+    @Published var loadingState: SeesturmLoadingState<TransformedCalendarEventResponse, PfadiSeesturmAppError> = .none
     
     // function to fetch the desired post using the network manager
     func fetchEvent(by eventId: String, calendarId: String, isPullToRefresh: Bool) async {
@@ -28,8 +27,7 @@ class AktivitaetDetailViewModel: ObservableObject {
             let event = try await calendarNetworkManager.fetchEvent(calendarId: calendarId, eventId: eventId)
             let transformedEvent = try event.toTransformedEvent(calendarTimeZoneIdentifier: "Europe/Zurich")
             withAnimation {
-                self.event = transformedEvent
-                self.loadingState = .success
+                self.loadingState = .result(.success(transformedEvent))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -40,14 +38,14 @@ class AktivitaetDetailViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.loadingState = .error(error: pfadiSeesturmError)
+                    self.loadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.loadingState = .error(error: pfadiSeesturmError)
+                self.loadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         

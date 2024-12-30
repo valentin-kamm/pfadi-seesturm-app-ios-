@@ -20,7 +20,7 @@ struct LuuchtturmView: View {
                         .listRowSeparator(.automatic)
                         .listRowInsets(EdgeInsets())
                 }
-            case .error(let error):
+            case .result(.failure(let error)):
                 CardErrorView(
                     errorTitle: "Ein Fehler ist aufgetreten",
                     errorDescription: error.localizedDescription,
@@ -32,8 +32,8 @@ struct LuuchtturmView: View {
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
-            case .success:
-                ForEach(Array(viewModel.documents.enumerated()), id: \.element.id) { index, document in
+            case .result(.success(let documents)):
+                ForEach(Array(documents.enumerated()), id: \.element.id) { index, document in
                     if let documentUrl = URL(string: document.url) {
                         Link(destination: documentUrl) {
                             DokumenteLuuchtturmCell(document: document)

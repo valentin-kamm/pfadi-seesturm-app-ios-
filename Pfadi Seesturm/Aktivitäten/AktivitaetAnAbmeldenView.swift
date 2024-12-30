@@ -10,16 +10,9 @@ import SwiftUI
 struct AktivitaetAnAbmeldenView: View {
     
     @StateObject var viewModel = AktivitaetAnAbmeldenViewModel()
-    
     var aktivitaet: TransformedCalendarEventResponse
     var stufe: SeesturmStufe
-    
-    @State private var vorname = ""
-    @State private var nachname = ""
-    @State private var pfadiname = ""
-    @State private var bemerkung = ""
-    @State var selectedContentMode: AktivitaetAktionen
-    
+    @State var selectedContentMode: AktivitaetAktion
     @State var navigateToGespeichertePersonen = false
     
     var body: some View {
@@ -30,19 +23,19 @@ struct AktivitaetAnAbmeldenView: View {
                         Image(systemName: "person.text.rectangle")
                             .frame(width: 24, height: 24)
                             .foregroundStyle(Color.SEESTURM_GREEN)
-                        TextField("Vorname", text: $vorname)
+                        TextField("Vorname", text: $viewModel.vorname)
                     }
                     HStack {
                         Image(systemName: "person.text.rectangle.fill")
                             .frame(width: 24, height: 24)
                             .foregroundStyle(Color.SEESTURM_GREEN)
-                        TextField("Nachname", text: $nachname)
+                        TextField("Nachname", text: $viewModel.nachname)
                     }
                     HStack {
                         Image(systemName: "face.smiling")
                             .frame(width: 24, height: 24)
                             .foregroundStyle(Color.SEESTURM_GREEN)
-                        TextField("Pfadiname (optional)", text: $pfadiname)
+                        TextField("Pfadiname (optional)", text: $viewModel.pfadiname)
                     }
                 }
                 Section(header: Text("Bemerkung (optional)")) {
@@ -50,7 +43,7 @@ struct AktivitaetAnAbmeldenView: View {
                         Image(systemName: "text.bubble")
                             .frame(width: 24, height: 24)
                             .foregroundStyle(Color.SEESTURM_GREEN)
-                        TextEditor(text: $bemerkung)
+                        TextEditor(text: $viewModel.bemerkung)
                             .frame(height: 75)
                     }
                 }
@@ -68,8 +61,9 @@ struct AktivitaetAnAbmeldenView: View {
                     CustomButton(
                         buttonStyle: .primary,
                         buttonTitle: "\(selectedContentMode.nomen) senden",
-                        buttonAction: {
-                            
+                        isLoading: viewModel.savingResult.loadingBinding(from: viewModel.$savingResult),
+                        asyncButtonAction: {
+                            await viewModel.saveAnAbmeldung(eventId: aktivitaet.id, selectedContentMode: selectedContentMode, stufe: stufe)
                         }
                     )
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -78,6 +72,26 @@ struct AktivitaetAnAbmeldenView: View {
                         .listRowBackground(Color.clear)
                 }
             }
+            .snackbar(
+                show: viewModel.savingResult.failureBinding(from: viewModel.$savingResult, reset: {
+                    viewModel.savingResult = .none
+                }),
+                type: .error,
+                message: viewModel.savingResult.errorMessage,
+                dismissAutomatically: true,
+                allowManualDismiss: true,
+                onDismiss: {}
+            )
+            .snackbar(
+                show: viewModel.savingResult.successBinding(from: viewModel.$savingResult, reset: {
+                    viewModel.savingResult = .none
+                }),
+                type: .success,
+                message: viewModel.savingResult.successMessage,
+                dismissAutomatically: true,
+                allowManualDismiss: true,
+                onDismiss: {}
+            )
             .navigationDestination(isPresented: $navigateToGespeichertePersonen) {
                 GespeichertePersonenView()
             }
@@ -92,9 +106,9 @@ struct AktivitaetAnAbmeldenView: View {
                                 ForEach(viewModel.personen, id: \.id) { person in
                                     Button(action: {
                                         withAnimation {
-                                            self.vorname = person.vorname
-                                            self.nachname = person.nachname
-                                            self.pfadiname = person.pfadiname ?? ""
+                                            viewModel.vorname = person.vorname
+                                            viewModel.nachname = person.nachname
+                                            viewModel.pfadiname = person.pfadiname ?? ""
                                         }
                                     }, label: {
                                         if let pfadiname = person.pfadiname {

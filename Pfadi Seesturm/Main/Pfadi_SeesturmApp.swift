@@ -32,5 +32,4 @@ struct Pfadi_SeesturmApp: App {
                 }
         }
     }
-    
 }

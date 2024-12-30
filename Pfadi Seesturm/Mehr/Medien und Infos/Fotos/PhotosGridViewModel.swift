@@ -10,8 +10,7 @@ import SwiftUI
 @MainActor
 class PhotosGridViewModel: ObservableObject {
     
-    @Published var images: [SeesturmWordpressImageResponse] = []
-    @Published var loadingState: SeesturmLoadingState = .none
+    @Published var loadingState: SeesturmLoadingState<[SeesturmWordpressImageResponse], PfadiSeesturmAppError> = .none
     
     private let photosNetworkManager = PhotosNetworkManager.shared
     
@@ -24,8 +23,7 @@ class PhotosGridViewModel: ObservableObject {
         do {
             let response = try await photosNetworkManager.fetchPhotos(id: id)
             withAnimation {
-                self.images = response.images
-                self.loadingState = .success
+                self.loadingState = .result(.success(response.images))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -36,14 +34,14 @@ class PhotosGridViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.loadingState = .error(error: pfadiSeesturmError)
+                    self.loadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.loadingState = .error(error: pfadiSeesturmError)
+                self.loadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         

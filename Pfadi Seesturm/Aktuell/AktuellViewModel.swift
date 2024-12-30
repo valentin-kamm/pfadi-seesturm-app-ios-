@@ -17,8 +17,8 @@ class AktuellViewModel: ObservableObject {
     @Published var postsLoadedCount: Int = 0
     private let numberOfPostsPerPage: Int = 5
     
-    @Published var initialPostsLoadingState: SeesturmLoadingState = .none
-    @Published var morePostsLoadingState: SeesturmLoadingState = .none
+    @Published var initialPostsLoadingState: SeesturmLoadingState<Void, PfadiSeesturmAppError> = .none
+    @Published var morePostsLoadingState: SeesturmLoadingState<Void, PfadiSeesturmAppError> = .none
     
     // function to fetch the initial set of posts
     func loadInitialSetOfPosts(isPullToRefresh: Bool) async {
@@ -33,7 +33,7 @@ class AktuellViewModel: ObservableObject {
                 self.totalPostsAvailable = loadedPosts.totalPosts
                 self.postsLoadedCount = loadedPosts.posts.count
                 self.posts = loadedPosts.posts.map { $0.toTransformedPost() }
-                self.initialPostsLoadingState = .success
+                self.initialPostsLoadingState = .result(.success(()))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -44,14 +44,14 @@ class AktuellViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.initialPostsLoadingState = .error(error: pfadiSeesturmError)
+                    self.initialPostsLoadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.initialPostsLoadingState = .error(error: pfadiSeesturmError)
+                self.initialPostsLoadingState = .result(.failure(pfadiSeesturmError))
             }
         }
     }
@@ -67,19 +67,19 @@ class AktuellViewModel: ObservableObject {
             let moreLoadedPosts = try await aktuellNetworkManager.fetchPosts(start: postsLoadedCount, length: numberOfPostsPerPage)
             self.postsLoadedCount += moreLoadedPosts.posts.count
             self.posts.append(contentsOf: moreLoadedPosts.posts.map{ $0.toTransformedPost() })
-            self.morePostsLoadingState = .success
+            self.morePostsLoadingState = .result(.success(()))
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
             if case .cancellationError(_) = pfadiSeesturmError {
                 self.morePostsLoadingState = .errorWithReload(error: pfadiSeesturmError)
             }
             else {
-                self.morePostsLoadingState = .error(error: pfadiSeesturmError)
+                self.morePostsLoadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
-            self.morePostsLoadingState = .error(error: pfadiSeesturmError)
+            self.morePostsLoadingState = .result(.failure(pfadiSeesturmError))
         }
         
     }

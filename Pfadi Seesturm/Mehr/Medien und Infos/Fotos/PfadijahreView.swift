@@ -10,6 +10,7 @@ import SwiftUI
 struct PfadijahreView: View {
     
     @ObservedObject var viewModel: PfadijahreViewModel
+    var forceImageLoading: Bool
     
     let columns = [
         GridItem(.flexible(), spacing: 16),
@@ -30,7 +31,7 @@ struct PfadijahreView: View {
                             }
                         }
                         .padding(.horizontal)
-                    case .error(let error):
+                    case .result(.failure(let error)):
                         CardErrorView(
                             errorTitle: "Ein Fehler ist aufgetreten",
                             errorDescription: error.localizedDescription,
@@ -39,19 +40,20 @@ struct PfadijahreView: View {
                             }
                         )
                         .padding(.vertical)
-                    case .success:
-                        if viewModel.pfadijahre.count == 0 {
+                    case .result(.success(let pfadijahre)):
+                        if pfadijahre.count == 0 {
                             VStack {
                                 Text("Keine Fotos")
                                     .frame(maxWidth: .infinity, alignment: .center)
                                     .multilineTextAlignment(.center)
                                     .padding()
+                                    .foregroundStyle(Color.secondary)
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
                         else {
                             LazyVGrid(columns: columns, spacing: 16) {
-                                ForEach(viewModel.pfadijahre, id: \.id) { pfadijahr in
+                                ForEach(pfadijahre, id: \.id) { pfadijahr in
                                     NavigationLink(value: pfadijahr) {
                                         PhotoGalleryCell(
                                             width: width,
@@ -76,7 +78,7 @@ struct PfadijahreView: View {
             GalleriesView(pfadijahr: pfadijahr)
         }
         .task {
-            if viewModel.loadingState.taskShouldRun {
+            if viewModel.loadingState.taskShouldRun || forceImageLoading {
                 await viewModel.fetchPfadijahre(isPullToRefresh: false)
             }
         }
@@ -84,5 +86,5 @@ struct PfadijahreView: View {
 }
 
 #Preview("Im Mehr Tab") {
-    PfadijahreView(viewModel: PfadijahreViewModel())
+    PfadijahreView(viewModel: PfadijahreViewModel(), forceImageLoading: false)
 }

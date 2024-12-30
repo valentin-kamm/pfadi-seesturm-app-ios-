@@ -31,7 +31,7 @@ struct GalleriesView: View {
                             }
                         }
                         .padding()
-                    case .error(let error):
+                    case .result(.failure(let error)):
                         CardErrorView(
                             errorTitle: "Ein Fehler ist aufgetreten",
                             errorDescription: error.localizedDescription,
@@ -39,19 +39,20 @@ struct GalleriesView: View {
                                 await viewModel.fetchGalleries(id: pfadijahr.id, isPullToRefresh: false)
                             })
                         .padding(.vertical)
-                    case .success:
-                        if viewModel.galleries.count == 0 {
+                    case .result(.success(let galleries)):
+                        if galleries.count == 0 {
                             VStack {
                                 Text("Keine Fotos")
                                     .frame(maxWidth: .infinity, alignment: .center)
                                     .multilineTextAlignment(.center)
                                     .padding()
+                                    .foregroundStyle(Color.secondary)
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
                         else {
                             LazyVGrid(columns: columns, spacing: 16) {
-                                ForEach(viewModel.galleries, id: \.id) { gallery in
+                                ForEach(galleries, id: \.id) { gallery in
                                     NavigationLink(value: gallery) {
                                         PhotoGalleryCell(
                                             width: width,

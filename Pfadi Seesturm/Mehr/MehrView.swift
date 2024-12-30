@@ -24,7 +24,6 @@ struct MehrView: View {
     var pfadiheimInfoUrl = URL(string: "https://seesturm.ch/pfadiheim/")!
     var pfadiheimMailUrl = URL(string: "mailto:pfadiheim@seesturm.ch")!
     
-    
     // Auswahlmöglichkeiten für dark / light mode
     @AppStorage("theme") var selectedTheme: String = "system"
     
@@ -32,7 +31,7 @@ struct MehrView: View {
         NavigationStack(path: $appState.tabNavigationPaths[AppMainTab.mehr.id]) {
             Form {
                 Section(header: Text("Infos und Medien")) {
-                    NavigationLink(value: MehrNavigationDestination.fotos) {
+                    NavigationLink(value: MehrNavigationDestination.fotos(forceImageLoading: false)) {
                         HStack {
                             Image(systemName: "photo.on.rectangle")
                                 .frame(width: 24, height: 24)
@@ -172,14 +171,14 @@ struct MehrView: View {
             .navigationBarTitleDisplayMode(.large)
             .navigationDestination(for: MehrNavigationDestination.self) { destination in
                 switch destination {
-                case .fotos:
-                    PfadijahreView(viewModel: pfadijahreViewModel)
+                case .fotos(let forceImageLoading):
+                    PfadijahreView(viewModel: pfadijahreViewModel, forceImageLoading: forceImageLoading)
                 case .dokumente:
                     DokumenteView()
                 case .lüüchtturm:
                     LuuchtturmView()
                 case .leitungsteam(let stufe):
-                    LeitungsteamView(selectedStufe: stufe)
+                    LeitungsteamView(passedStufe: stufe)
                 case .pushNotifications:
                     PushNotificationVerwaltenView()
                 case .gespeichertePersonen:
@@ -216,12 +215,12 @@ struct MehrHorizontalPhotoScrollView: View {
                 }
             }
             .scrollDisabled(true)
-        case .error(_):
+        case .result(.failure(_)):
             EmptyView()
-        case .success:
+        case .result(.success(let pfadijahre)):
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 16) {
-                    ForEach(viewModel.pfadijahre, id: \.id) { pfadijahr in
+                    ForEach(pfadijahre, id: \.id) { pfadijahr in
                         NavigationLink(value: pfadijahr) {
                             PhotoGalleryCell(
                                 width: 120,
@@ -241,7 +240,7 @@ struct MehrHorizontalPhotoScrollView: View {
 }
 
 enum MehrNavigationDestination: Hashable {
-    case fotos
+    case fotos(forceImageLoading: Bool)
     case dokumente
     case lüüchtturm
     case leitungsteam(stufe: String)

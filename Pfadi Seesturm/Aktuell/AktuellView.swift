@@ -29,7 +29,7 @@ struct AktuellView: View {
                                         .padding(.top, index == 0 ? 16 : 0)
                                 }
                             }
-                        case .error(let error):
+                        case .result(.failure(let error)):
                             CardErrorView(
                                 errorTitle: "Ein Fehler ist aufgetreten",
                                 errorDescription: error.localizedDescription,
@@ -38,7 +38,7 @@ struct AktuellView: View {
                                 }
                             )
                             .padding(.vertical)
-                        case .success:
+                        case .result(.success(_)):
                             ForEach(Array(viewModel.groupedPosts().enumerated()), id: \.element.year) { sectionIndex, section in
                                 Section {
                                     ForEach(Array(section.posts.enumerated()), id: \.element.id) { index, post in
@@ -58,7 +58,7 @@ struct AktuellView: View {
                                 
                             }
                             switch viewModel.morePostsLoadingState {
-                            case .error(let error):
+                            case .result(.failure(let error)):
                                 CardErrorView(
                                     errorTitle: "Es konnten keine weiteren Posts geladen werden",
                                     errorDescription: error.localizedDescription,

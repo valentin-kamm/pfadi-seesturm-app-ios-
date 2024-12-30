@@ -33,7 +33,7 @@ struct MainView : View {
             }
             .tag(AppMainTab.aktuell)
             .toolbarBackground(.bar, for: .tabBar)
-            TermineView()
+            TermineView(type: .mainTab)
             .tabItem {
                 Label("Anlässe", systemImage: "calendar")
             }

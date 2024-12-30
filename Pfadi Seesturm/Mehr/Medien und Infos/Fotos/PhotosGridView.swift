@@ -35,7 +35,7 @@ struct PhotosGridView: View {
                                 PhotoGalleryLoadingCell(width: width, height: height, withText: false)
                             }
                         }
-                    case .error(let error):
+                    case .result(.failure(let error)):
                         CardErrorView(
                             errorTitle: "Ein Fehler ist aufgetreten",
                             errorDescription: error.localizedDescription,
@@ -44,19 +44,20 @@ struct PhotosGridView: View {
                             }
                         )
                         .padding(.vertical)
-                    case .success:
-                        if viewModel.images.count == 0 {
+                    case .result(.success(let images)):
+                        if images.count == 0 {
                             VStack {
                                 Text("Keine Fotos")
                                     .frame(maxWidth: .infinity, alignment: .center)
                                     .multilineTextAlignment(.center)
                                     .padding()
+                                    .foregroundStyle(Color.secondary)
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
                         else {
                             LazyVGrid(columns: columns, spacing: 2) {
-                                ForEach(viewModel.images, id: \.id) { image in
+                                ForEach(images, id: \.id) { image in
                                     PhotoGalleryCell(
                                         width: width,
                                         height: height,
@@ -64,7 +65,7 @@ struct PhotosGridView: View {
                                     )
                                     // navigate to photo slider
                                     .onTapGesture {
-                                        selectedImageIndex = viewModel.images.firstIndex(where: { $0.id == image.id }) ?? 0
+                                        selectedImageIndex = images.firstIndex(where: { $0.id == image.id }) ?? 0
                                         showModal = true
                                     }
                                 }
@@ -78,10 +79,15 @@ struct PhotosGridView: View {
         .navigationTitle(gallery.title)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showModal) {
-            PhotoSlider(
-                selectedImageIndex: $selectedImageIndex,
-                images: viewModel.images
-            )
+            switch viewModel.loadingState {
+            case .result(.success(let images)):
+                PhotoSlider(
+                    selectedImageIndex: $selectedImageIndex,
+                    images: images
+                )
+            default:
+                EmptyView()
+            }
         }
         .task {
             if viewModel.loadingState.taskShouldRun {

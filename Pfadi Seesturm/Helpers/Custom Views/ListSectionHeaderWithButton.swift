@@ -9,12 +9,9 @@ import SwiftUI
 
 struct ListSectionHeaderWithButton: View {
     
-    var iconName: String
+    var headerType: ListSectionHeaderType
     var sectionTitle: String
-    var showButton: Bool
-    var buttonTitle: String = ""
-    var buttonIconName: String = ""
-    var buttonAction: (() -> Void)?
+    var iconName: String
     
     var body: some View {
         HStack(alignment: .center) {
@@ -29,9 +26,12 @@ struct ListSectionHeaderWithButton: View {
                 .font(.title2)
                 .fontWeight(.bold)
             Spacer(minLength: 16)
-            if showButton {
+            switch headerType {
+            case .blank:
+                EmptyView()
+            case .button(let buttonTitle, let buttonIconName, let buttonAction):
                 CustomButton(
-                    buttonStyle: .tertiary,
+                    buttonStyle: .tertiary(),
                     buttonTitle: buttonTitle,
                     buttonSystemIconName: buttonIconName,
                     buttonAction: buttonAction
@@ -40,24 +40,28 @@ struct ListSectionHeaderWithButton: View {
         }
         .padding(.vertical, 8)
     }
-    
+}
+
+enum ListSectionHeaderType {
+    case blank
+    case button(buttonTitle: String? = nil, buttonIconName: String? = nil, buttonAction: (() -> Void)? = nil)
 }
 
 #Preview("Ohne Button") {
     ListSectionHeaderWithButton(
-        iconName: "person.2.circle.fill",
+        headerType: .blank,
         sectionTitle: "Nächste Aktivität",
-        showButton: false,
-        buttonTitle: "Mehr",
-        buttonIconName: "chevron.right"
+        iconName: "person.2.circle.fill"
     )
 }
-#Preview("Normaler Button") {
+#Preview("Mit Button") {
     ListSectionHeaderWithButton(
-        iconName: "person.2.circle.fill",
+        headerType: .button(
+            buttonTitle: "Mehr",
+            buttonIconName: "chevron.right",
+            buttonAction: {}
+        ),
         sectionTitle: "Nächste Aktivität",
-        showButton: true,
-        buttonTitle: "Mehr",
-        buttonIconName: "chevron.right"
+        iconName: "person.2.circle.fill"
     )
 }

@@ -10,7 +10,9 @@ import SwiftUI
 struct LeitungsteamView: View {
     
     @StateObject var viewModel: LeitungsteamViewModel = LeitungsteamViewModel()
-    @State var selectedStufe = "Abteilungsleitung"
+    @State var selectedStufe: String = ""
+    @Environment(\.scenePhase) private var scenePhase
+    let passedStufe: String
     
     var body: some View {
         
@@ -34,7 +36,7 @@ struct LeitungsteamView: View {
                             .listRowBackground(Color.clear)
                     }
                 }
-            case .error(let error):
+            case .result(.failure(let error)):
                 CardErrorView(
                     errorTitle: "Ein Fehler ist aufgetreten",
                     errorDescription: error.localizedDescription,
@@ -45,7 +47,7 @@ struct LeitungsteamView: View {
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
-            case .success:
+            case .result(.success(let leitungsteam)):
                 // section header with button to select stufe and title of selected stufe
                 Section(header: HStack(alignment: .center, spacing: 16) {
                     Text(selectedStufe)
@@ -55,13 +57,18 @@ struct LeitungsteamView: View {
                         .allowsTightening(true)
                     VStack {
                         Menu {
-                            ForEach(viewModel.leitungsteam.reversed(), id: \.id) { stufe in
+                            ForEach(leitungsteam.reversed(), id: \.id) { stufe in
                                 Button(action: {
                                     withAnimation {
                                         selectedStufe = stufe.teamName
                                     }
                                 }) {
-                                    Text(stufe.teamName)
+                                    HStack {
+                                        Text(stufe.teamName)
+                                        if selectedStufe == stufe.teamName {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
                                 }
                             }
                         } label: {
@@ -82,8 +89,8 @@ struct LeitungsteamView: View {
                 .frame(height: 45, alignment: .leading)
                 .padding(.vertical, 8)
                 ) {
-                    if viewModel.leitungsteam.map({ $0.teamName }).contains(selectedStufe) {
-                        ForEach(Array(viewModel.leitungsteam.filter { $0.teamName == selectedStufe }[0].members.enumerated()), id: \.element.id) { index, member in
+                    if leitungsteam.map({ $0.teamName }).contains(selectedStufe) {
+                        ForEach(Array(leitungsteam.filter { $0.teamName == selectedStufe }[0].members.enumerated()), id: \.element.id) { index, member in
                             LeitungsteamCell(member: member)
                                 .padding(.bottom)
                                 .padding(.top, index == 0 ? 16 : 0)
@@ -102,6 +109,20 @@ struct LeitungsteamView: View {
         .refreshable {
             await viewModel.fetchLeitungsteam(isPullToRefresh: true)
         }
+        .onAppear {
+            withAnimation {
+                selectedStufe = passedStufe
+            }
+        }
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active {
+                if passedStufe != selectedStufe {
+                    withAnimation {
+                        selectedStufe = passedStufe
+                    }
+                }
+            }
+        }
         .task {
             if viewModel.loadingState.taskShouldRun {
                 await viewModel.fetchLeitungsteam(isPullToRefresh: false)
@@ -113,5 +134,7 @@ struct LeitungsteamView: View {
 }
 
 #Preview {
-    LeitungsteamView()
+    LeitungsteamView(
+        passedStufe: "Abteilungsleitung"
+    )
 }

@@ -1,5 +1,5 @@
 //
-//  ApplicationConfig.swift
+//  OAuthApplicationConfig.swift
 //  Pfadi Seesturm
 //
 //  Created by Valentin Kamm on 14.12.2024.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ApplicationConfig: Decodable {
+struct OAuthApplicationConfig: Decodable {
     let issuer: String
     let clientID: String
     let redirectUri: String
@@ -21,7 +21,7 @@ struct TransformedApplicationConfig {
     let scopes: [String]
 }
 
-extension ApplicationConfig {
+extension OAuthApplicationConfig {
     func toValidatedConfig() throws -> TransformedApplicationConfig {
         if URL(string: redirectUri) == nil || URL(string: issuer) == nil {
             throw PfadiSeesturmAppError.authError(message: "Redirect-URI oder Aussteller ungültig.")

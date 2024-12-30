@@ -44,7 +44,7 @@ struct AktuellDetailView: View {
                             .redacted(reason: .placeholder)
                             .customLoadingBlinking()
                     }
-                case .error(let error):
+                case .result(.failure(let error)):
                     ScrollView {
                         CardErrorView(
                             errorTitle: "Ein Fehler ist aufgetreten",
@@ -55,8 +55,8 @@ struct AktuellDetailView: View {
                         )
                         .padding(.vertical)
                     }
-                case .success:
-                    AktuellDetailContentView(post: viewModel.post)
+                case .result(.success(let post)):
+                    AktuellDetailContentView(post: post)
                 }
             case .object(let post):
                 AktuellDetailContentView(post: post)

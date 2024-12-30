@@ -18,13 +18,12 @@ class HitobitoAuthService: NSObject, @unchecked Sendable {
     func authenticate(changeStatus: (AuthState) -> Void) async {
         do {
             let appConfig = try getAppConfig()
-            changeStatus(.signingIn(loadingType: .button))
+            changeStatus(.signingIn)
             let serviceConfig = try await fetchIssuerMetadata(appConfig: appConfig)
             let authResponse = try await performAuthorizationRedirect(
                 serviceConfig: serviceConfig,
                 appConfig: appConfig
             )
-            changeStatus(.signingIn(loadingType: .fullScreen))
             let tokenResponse = try await redeemCodeForTokens(
                 authResponse: authResponse,
                 appConfig: appConfig

@@ -48,7 +48,7 @@ struct CardErrorView: View {
                     .padding(.bottom, (asyncRetryAction != nil || retryAction != nil) ? 0 : 24)
                 if asyncRetryAction != nil || retryAction != nil {
                     CustomButton(
-                        buttonStyle: .tertiary,
+                        buttonStyle: .tertiary(),
                         buttonTitle: "Erneut versuchen",
                         buttonAction: retryAction,
                         asyncButtonAction: asyncRetryAction

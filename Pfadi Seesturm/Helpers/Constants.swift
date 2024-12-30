@@ -6,11 +6,15 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 // normal (string) constants
 struct Constants {
     
-    static var OAUTH_CONFIG = ApplicationConfig(
+    static let SCHOPFLI_LOCATION = CLLocation(latitude: 47.530457, longitude: 9.362085)
+    static let SCHOPFLIALARM_MAX_DISTANCE: Double = 100 // m
+    
+    static var OAUTH_CONFIG = OAuthApplicationConfig(
         issuer: "https://pbs.puzzle.ch",
         clientID: "wKbfjfg_sj0iKpBR8u3QBAOmCkJR0lub3BqlBtbH60I",
         redirectUri: "https://seesturm.ch/oauth/app/callback",

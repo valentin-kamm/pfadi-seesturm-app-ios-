@@ -59,7 +59,7 @@ struct HomeView: View {
                                                 )
                                                 .padding(.leading, index == 0 ? 16 : 0)
                                                 .padding(.trailing, index == viewModel.selectedStufen.count - 1 ? 16 : 0)
-                                            case .error(let error):
+                                            case .result(.failure(let error)):
                                                 CardErrorView(
                                                     errorTitle: "Ein Fehler ist aufgetreten",
                                                     errorDescription: error.localizedDescription,
@@ -71,7 +71,7 @@ struct HomeView: View {
                                                 .padding(.vertical)
                                                 .padding(.leading, index == 0 ? 16 : 0)
                                                 .padding(.trailing, index == viewModel.selectedStufen.count - 1 ? 16 : 0)
-                                            case .success(let aktivitaet):
+                                            case .result(.success(let aktivitaet)):
                                                 NavigationLink(
                                                     value: AktivitaetDetailNavigationData(
                                                         stufe: stufe,
@@ -114,12 +114,13 @@ struct HomeView: View {
                     }
                     // Aktuell
                     Section(header: ListSectionHeaderWithButton(
-                        iconName: "newspaper.circle.fill",
+                        headerType: .button(
+                            buttonTitle: "Mehr",
+                            buttonIconName: "chevron.right",
+                            buttonAction: { appState.selectedTab = .aktuell }
+                        ),
                         sectionTitle: "Aktuell",
-                        showButton: true,
-                        buttonTitle: "Mehr",
-                        buttonIconName: "chevron.right",
-                        buttonAction: {appState.selectedTab = .aktuell}
+                        iconName: "newspaper.circle.fill"
                     )
                         .padding(0)
                     ) {
@@ -130,7 +131,7 @@ struct HomeView: View {
                                 .listRowInsets(EdgeInsets())
                                 .listRowBackground(Color.clear)
                                 .padding(.top)
-                        case .error(let error):
+                        case .result(.failure(let error)):
                             CardErrorView(
                                 errorTitle: "Ein Fehler ist aufgetreten",
                                 errorDescription: error.localizedDescription,
@@ -142,9 +143,9 @@ struct HomeView: View {
                             .listRowInsets(EdgeInsets())
                             .listRowBackground(Color.clear)
                             .padding(.top)
-                        case .success:
+                        case .result(.success(let aktuellPost)):
                             AktuellCardView(
-                                post: viewModel.aktuellPost,
+                                post: aktuellPost,
                                 width: geometry.size.width
                             )
                             .listRowSeparator(.hidden)
@@ -152,7 +153,7 @@ struct HomeView: View {
                             .listRowBackground(Color.clear)
                             .padding(.top)
                             .background(
-                                NavigationLink(value: AktuellDetailViewInputType.object(viewModel.aktuellPost)) {
+                                NavigationLink(value: AktuellDetailViewInputType.object(aktuellPost)) {
                                     EmptyView()
                                 }
                                     .opacity(0)
@@ -162,12 +163,13 @@ struct HomeView: View {
                     
                     // Anlässe
                     Section(header: ListSectionHeaderWithButton(
-                        iconName: "calendar.circle.fill",
+                        headerType: .button(
+                            buttonTitle: "Mehr",
+                            buttonIconName: "chevron.right",
+                            buttonAction: { appState.selectedTab = .anlässe }
+                        ),
                         sectionTitle: "Anlässe",
-                        showButton: true,
-                        buttonTitle: "Mehr",
-                        buttonIconName: "chevron.right",
-                        buttonAction: {appState.selectedTab = .anlässe}
+                        iconName: "calendar.circle.fill"
                     )
                         .padding(0)
                     ) {
@@ -180,7 +182,7 @@ struct HomeView: View {
                                     .listRowInsets(EdgeInsets())
                                     .listRowBackground(Color.clear)
                             }
-                        case .error(let error):
+                        case .result(.failure(let error)):
                             CardErrorView(
                                 errorTitle: "Ein Fehler ist aufgetreten",
                                 errorDescription: error.localizedDescription,
@@ -192,8 +194,8 @@ struct HomeView: View {
                             .listRowInsets(EdgeInsets())
                             .listRowBackground(Color.clear)
                             .padding(.top)
-                        case .success:
-                            if viewModel.events.isEmpty {
+                        case .result(.success(let events)):
+                            if events.isEmpty {
                                 Text("Keine bevorstehenden Anlässe")
                                     .padding(.horizontal)
                                     .padding(.vertical, 75)
@@ -202,9 +204,10 @@ struct HomeView: View {
                                     .listRowInsets(EdgeInsets())
                                     .listRowBackground(Color.clear)
                                     .multilineTextAlignment(.center)
+                                    .foregroundStyle(Color.secondary)
                             }
                             else {
-                                ForEach(Array(viewModel.events.enumerated()), id: \.element.id) { index, event in
+                                ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
                                     TermineCardView(event: event)
                                         .padding(.top, index == 0 ? 16 : 0)
                                         .listRowSeparator(.hidden)
@@ -223,9 +226,9 @@ struct HomeView: View {
                     
                     // Wetter
                     Section(header: ListSectionHeaderWithButton(
-                        iconName: "sun.max.circle.fill",
+                        headerType: .blank,
                         sectionTitle: "Wetter",
-                        showButton: false
+                        iconName: "sun.max.circle.fill"
                     )
                         .padding(0)
                     ) {
@@ -235,7 +238,7 @@ struct HomeView: View {
                                 .listRowSeparator(.hidden)
                                 .listRowInsets(EdgeInsets())
                                 .listRowBackground(Color.clear)
-                        case .error(let error):
+                        case .result(.failure(let error)):
                             CardErrorView(
                                 errorTitle: "Ein Fehler ist aufgetreten",
                                 errorDescription: error.localizedDescription,
@@ -247,8 +250,8 @@ struct HomeView: View {
                             .listRowInsets(EdgeInsets())
                             .listRowBackground(Color.clear)
                             .padding(.vertical)
-                        case .success:
-                            WeatherCardView(weather: viewModel.weather)
+                        case .result(.success(let weather)):
+                            WeatherCardView(weather: weather)
                                 .listRowSeparator(.hidden)
                                 .listRowInsets(EdgeInsets())
                                 .listRowBackground(Color.clear)

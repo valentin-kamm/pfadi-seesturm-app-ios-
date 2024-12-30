@@ -11,6 +11,15 @@ import RichText
 struct TermineCardView: View {
     
     let event: TransformedCalendarEventResponse
+    var isLeitungsteam: Bool
+    
+    init(
+        event: TransformedCalendarEventResponse,
+        isLeitungsteam: Bool = false
+    ) {
+        self.event = event
+        self.isLeitungsteam = isLeitungsteam
+    }
     
     var body: some View {
         CustomCardView(shadowColor: .seesturmGreenCardViewShadowColor) {
@@ -22,7 +31,7 @@ struct TermineCardView: View {
                                 .lineLimit(1)
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundStyle(Color.SEESTURM_GREEN)
+                                .foregroundStyle(isLeitungsteam ? Color.SEESTURM_RED : Color.SEESTURM_GREEN)
                             Text(endDate)
                                 .lineLimit(1)
                                 .font(.subheadline)
@@ -32,7 +41,7 @@ struct TermineCardView: View {
                                 .lineLimit(1)
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundStyle(Color.SEESTURM_GREEN)
+                                .foregroundStyle(isLeitungsteam ? Color.SEESTURM_RED : Color.SEESTURM_GREEN)
                             Text(event.startMonth)
                                 .lineLimit(1)
                                 .font(.subheadline)
@@ -55,7 +64,7 @@ struct TermineCardView: View {
                             .lineLimit(1)
                     } icon: {
                         Image(systemName: "calendar.badge.clock")
-                            .foregroundStyle(Color.SEESTURM_GREEN)
+                            .foregroundStyle(isLeitungsteam ? Color.SEESTURM_RED : Color.SEESTURM_GREEN)
                     }
                     .labelStyle(.titleAndIcon)
                     if let location = event.location {
@@ -66,7 +75,7 @@ struct TermineCardView: View {
                                 .lineLimit(1)
                         } icon: {
                             Image(systemName: "location")
-                                .foregroundStyle(Color.SEESTURM_GREEN)
+                                .foregroundStyle(isLeitungsteam ? Color.SEESTURM_RED : Color.SEESTURM_GREEN)
                         }
                         .labelStyle(.titleAndIcon)
                     }

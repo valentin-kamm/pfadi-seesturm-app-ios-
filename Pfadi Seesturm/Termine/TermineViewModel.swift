@@ -10,15 +10,42 @@ import SwiftUI
 @MainActor
 class TermineViewModel: ObservableObject {
     
+    var type: TermineViewInputType
+    
     private let calendarNetworkManager = CalendarNetworkManager.shared
     
-    @Published var events: [TransformedCalendarEventResponse] = []
-    @Published var calendarLastUpdated: String = ""
-    @Published var nextPageToken: String? = nil
+    @Published var events: [TransformedCalendarEventResponse]
+    @Published var calendarLastUpdated: String
+    @Published var nextPageToken: String?
     private let numberOfEventsPerPage: Int = 10
     
-    @Published var initialEventsLoadingState: SeesturmLoadingState = .none
-    @Published var moreEventsLoadingState: SeesturmLoadingState = .none
+    @Published var initialEventsLoadingState: SeesturmLoadingState<Void, PfadiSeesturmAppError>
+    @Published var moreEventsLoadingState: SeesturmLoadingState<Void, PfadiSeesturmAppError>
+    
+    init(
+        type: TermineViewInputType,
+        events: [TransformedCalendarEventResponse] = [],
+        calendarLastUpdated: String = "",
+        nextPageToken: String? = nil,
+        initialEventsLoadingState: SeesturmLoadingState<Void, PfadiSeesturmAppError> = .none,
+        moreEventsLoadingState: SeesturmLoadingState<Void, PfadiSeesturmAppError> = .none
+    ) {
+        self.type = type
+        self.events = events
+        self.calendarLastUpdated = calendarLastUpdated
+        self.nextPageToken = nextPageToken
+        self.initialEventsLoadingState = initialEventsLoadingState
+        self.moreEventsLoadingState = moreEventsLoadingState
+    }
+    
+    private var calendarId: String {
+        switch type {
+        case .mainTab:
+            return CalendarType.termine.info.calendarId
+        case .leiterbereich:
+            return CalendarType.termineLeitungsteam.info.calendarId
+        }
+    }
     
     // function to fetch the initial set of posts
     func loadInitialSetOfEvents(isPullToRefresh: Bool) async {
@@ -28,7 +55,7 @@ class TermineViewModel: ObservableObject {
         }
         
         do {
-            let response = try await calendarNetworkManager.fetchEvents(calendarId: CalendarType.termine.info.calendarId, includePast: false, maxResults: numberOfEventsPerPage)
+            let response = try await calendarNetworkManager.fetchEvents(calendarId: calendarId, includePast: false, maxResults: numberOfEventsPerPage)
             let transformedEvents = try response.items.compactMap { item in
                 return try item.toTransformedEvent(calendarTimeZoneIdentifier: response.timeZone)
             }
@@ -38,7 +65,7 @@ class TermineViewModel: ObservableObject {
                 self.nextPageToken = response.nextPageToken
                 self.events = transformedEvents
                 self.calendarLastUpdated = calendarLastUpdatedDateString
-                self.initialEventsLoadingState = .success
+                self.initialEventsLoadingState = .result(.success(()))
             }
             
         }
@@ -50,14 +77,14 @@ class TermineViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.initialEventsLoadingState = .error(error: pfadiSeesturmError)
+                    self.initialEventsLoadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.initialEventsLoadingState = .error(error: pfadiSeesturmError)
+                self.initialEventsLoadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         
@@ -71,7 +98,7 @@ class TermineViewModel: ObservableObject {
         }
         
         do {
-            let moreLoadedEvents = try await calendarNetworkManager.fetchEvents(by: pageToken, calendarId: CalendarType.termine.info.calendarId, maxResults: numberOfEventsPerPage)
+            let moreLoadedEvents = try await calendarNetworkManager.fetchEvents(by: pageToken, calendarId: calendarId, maxResults: numberOfEventsPerPage)
             let transformedEvents = try moreLoadedEvents.items.compactMap { item in
                 return try item.toTransformedEvent(calendarTimeZoneIdentifier: moreLoadedEvents.timeZone)
             }
@@ -81,7 +108,7 @@ class TermineViewModel: ObservableObject {
                 self.nextPageToken = moreLoadedEvents.nextPageToken
                 self.events.append(contentsOf: transformedEvents)
                 self.calendarLastUpdated = calendarLastUpdatedDateString
-                self.moreEventsLoadingState = .success
+                self.moreEventsLoadingState = .result(.success(()))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -92,14 +119,14 @@ class TermineViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.moreEventsLoadingState = .error(error: pfadiSeesturmError)
+                    self.moreEventsLoadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.moreEventsLoadingState = .error(error: pfadiSeesturmError)
+                self.moreEventsLoadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         

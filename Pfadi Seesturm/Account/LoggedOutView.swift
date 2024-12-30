@@ -10,9 +10,7 @@ import SwiftUI
 struct LoggedOutView: View {
     
     @EnvironmentObject var appState: AppState
-    var buttonIsLoading: Bool
-    
-    
+        
     var body: some View {
         CustomCardView(shadowColor: .seesturmGreenCardViewShadowColor) {
             VStack(alignment: .center, spacing: 16) {
@@ -33,7 +31,7 @@ struct LoggedOutView: View {
                     buttonStyle: .primary,
                     buttonTitle: "Login mit MiData",
                     buttonCustomIconName: "midataLogo",
-                    isLoading: .constant(buttonIsLoading),
+                    isLoading: .constant(appState.authState.signInButtonIsLoading),
                     asyncButtonAction: {
                         await appState.authenticateWithHitobito()
                     }
@@ -48,5 +46,5 @@ struct LoggedOutView: View {
 }
 
 #Preview {
-    LoggedOutView(buttonIsLoading: false)
+    LoggedOutView()
 }

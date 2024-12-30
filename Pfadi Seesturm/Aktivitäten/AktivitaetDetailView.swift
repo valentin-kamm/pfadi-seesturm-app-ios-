@@ -48,7 +48,7 @@ struct AktivitaetDetailView: View {
                         .padding()
                     }
                     .padding()
-                case .error(let error):
+                case .result(.failure(let error)):
                     CardErrorView(
                         errorTitle: "Ein Fehler ist aufgetreten",
                         errorDescription: error.localizedDescription,
@@ -57,10 +57,10 @@ struct AktivitaetDetailView: View {
                         }
                     )
                     .padding(.vertical)
-                case .success:
+                case .result(.success(let event)):
                     AktivitaetDetailContentView(
                         stufe: stufe,
-                        aktivitaet: viewModel.event
+                        aktivitaet: event
                     )
                 
                 }
@@ -90,13 +90,22 @@ struct AktivitaetDetailView: View {
                 }
             }
         }
+        .navigationDestination(for: AktivitaetDetailNavigationDestination.self) { destination in
+            switch destination {
+            case .pushNotifications:
+                PushNotificationVerwaltenView()
+            }
+        }
     }
 }
 
 struct AktivitaetDetailContentView: View {
+    
+    @EnvironmentObject var appState: AppState
     var stufe: SeesturmStufe
     var aktivitaet: TransformedCalendarEventResponse?
-    @State var sheetMode: AktivitaetAktionen? = nil
+    @State var sheetMode: AktivitaetAktion? = nil
+    
     var body: some View {
         CustomCardView(shadowColor: .seesturmGreenCardViewShadowColor) {
             if let aktivitaet = aktivitaet {
@@ -236,7 +245,7 @@ struct AktivitaetDetailContentView: View {
                 .padding()
             }
             else {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .center, spacing: 16) {
                     HStack(alignment: .top, spacing: 16) {
                         Text(stufe.description)
                             .multilineTextAlignment(.leading)
@@ -252,10 +261,24 @@ struct AktivitaetDetailContentView: View {
                     Text("Die nächste Aktivität ist noch in Planung.")
                         .foregroundStyle(Color.secondary)
                         .font(.subheadline)
+                        .fontWeight(.bold)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .multilineTextAlignment(.center)
-                        .padding(.vertical, 64)
-                        .lineLimit(2)
+                        .padding(.top)
+                    Text("Aktiviere die Push-Nachrichten, um benachrichtigt zu werden, sobald die Aktivität fertig geplant ist.")
+                        .foregroundStyle(Color.secondary)
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .multilineTextAlignment(.center)
+                        .padding(.top)
+                    NavigationLink(value: AktivitaetDetailNavigationDestination.pushNotifications, label: {
+                        CustomButton(
+                            buttonStyle: .primary,
+                            buttonTitle: "Push-Nachrichten aktivieren",
+                            isDisabled: true
+                        )
+                    })
+                    .padding()
                 }
                 .padding()
             }
@@ -275,10 +298,18 @@ struct AktivitaetDetailContentView: View {
                     Image(systemName: "calendar.badge.plus")
                 }
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink(value: AktivitaetDetailNavigationDestination.pushNotifications) {
+                    Image(systemName: "bell.badge")
+                }
+            }
         }
     }
 }
 
+enum AktivitaetDetailNavigationDestination: Hashable {
+    case pushNotifications
+}
 
 // to define which input is provided
 enum AktivitaetDetailViewInputType: Hashable {

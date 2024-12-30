@@ -11,10 +11,10 @@ class UniversalLinksHandler {
     
     static let shared = UniversalLinksHandler()
     
-    func getNavigationDestinationFromUniversalLink(url: URL) -> (AppMainTab, NavigationPath) {
+    func getNavigationDestinationFromUniversalLink(url: URL) -> (AppMainTab, NavigationPath)? {
         
         if url.host(percentEncoded: true) != "seesturm.ch" {
-            return (AppMainTab.home, NavigationPath())
+            return nil
         }
         
         let pathComponents = url.pathComponents
@@ -34,7 +34,7 @@ class UniversalLinksHandler {
         
         // fotos
         if pathComponentsCount == 3 && pathComponents[1] == "medien" && pathComponents.last == "fotos" {
-            return (AppMainTab.mehr, NavigationPath([MehrNavigationDestination.fotos]))
+            return (AppMainTab.mehr, NavigationPath([MehrNavigationDestination.fotos(forceImageLoading: true)]))
         }
         
         // dokumente
@@ -44,7 +44,7 @@ class UniversalLinksHandler {
         
         // lüüchtturm
         if pathComponentsCount == 3 && pathComponents[1] == "medien" && pathComponents.last == "luuchtturm" {
-            return (AppMainTab.mehr, NavigationPath([MehrNavigationDestination.dokumente]))
+            return (AppMainTab.mehr, NavigationPath([MehrNavigationDestination.lüüchtturm]))
         }
         
         // leitungsteam
@@ -70,7 +70,7 @@ class UniversalLinksHandler {
                 }
             }
             else {
-                return (AppMainTab.home, NavigationPath())
+                return nil
             }
         }
         
@@ -78,12 +78,12 @@ class UniversalLinksHandler {
         if pathComponentsCount == 4 && pathComponents[1] == "oauth" && pathComponents.last == "callback" {
             if let session = HitobitoAuthService.shared.userAgentSession {
                 session.resumeExternalUserAgentFlow(with: url)
+                HitobitoAuthService.shared.userAgentSession = nil
             }
-            HitobitoAuthService.shared.userAgentSession = nil
             return (AppMainTab.leiterbereich, NavigationPath())
         }
         
-        return (AppMainTab.home, NavigationPath())
+        return nil
     }
     
 }

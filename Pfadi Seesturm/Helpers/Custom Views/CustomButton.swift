@@ -11,19 +11,21 @@ import SwiftUI
 struct CustomButton: View {
     
     var buttonStyle: CustomButtonStyle
-    var buttonTitle: String
+    var buttonTitle: String?
     var buttonSystemIconName: String?
     var buttonCustomIconName: String?
     @Binding var isLoading: Bool
+    var isDisabled: Bool
     var buttonAction: (() -> Void)?
     var asyncButtonAction: (() async throws -> Void)?
     
     init(
         buttonStyle: CustomButtonStyle,
-        buttonTitle: String,
+        buttonTitle: String?,
         buttonSystemIconName: String? = nil,
         buttonCustomIconName: String? = nil,
         isLoading: Binding<Bool> = .constant(false),
+        isDisabled: Bool = false,
         buttonAction: (() -> Void)? = nil,
         asyncButtonAction: (() async throws -> Void)? = nil
     ) {
@@ -32,6 +34,7 @@ struct CustomButton: View {
         self.buttonSystemIconName = buttonSystemIconName
         self.buttonCustomIconName = buttonCustomIconName
         self._isLoading = isLoading
+        self.isDisabled = isDisabled
         self.buttonAction = buttonAction
         self.asyncButtonAction = asyncButtonAction
     }
@@ -39,7 +42,8 @@ struct CustomButton: View {
     var body: some View {
         
         VStack {
-            if buttonStyle == .primary {
+            switch buttonStyle {
+            case .primary:
                 Button {
                     if let buttonAction = buttonAction {
                         buttonAction()
@@ -52,7 +56,10 @@ struct CustomButton: View {
                 } label: {
                     ZStack {
                         HStack {
-                            Text(buttonTitle)
+                            if let title = buttonTitle {
+                                Text(title)
+                                    .lineLimit(1)
+                            }
                             if let systemIconName = buttonSystemIconName {
                                 Image(systemName: systemIconName)
                             }
@@ -72,9 +79,8 @@ struct CustomButton: View {
                 .buttonStyle(PrimaryButtonConfig(isLoading: $isLoading))
                 .cornerRadius(16)
                 .buttonStyle(.plain)
-                .disabled(isLoading)
-            }
-            else if buttonStyle == .secondary {
+                .disabled(isLoading || isDisabled)
+            case .secondary:
                 Button {
                     if let buttonAction = buttonAction {
                         buttonAction()
@@ -87,7 +93,10 @@ struct CustomButton: View {
                 } label: {
                     ZStack {
                         HStack {
-                            Text(buttonTitle)
+                            if let title = buttonTitle {
+                                Text(title)
+                                    .lineLimit(1)
+                            }
                             if let systemIconName = buttonSystemIconName {
                                 Image(systemName: systemIconName)
                             }
@@ -107,8 +116,7 @@ struct CustomButton: View {
                 .cornerRadius(16)
                 .buttonStyle(.plain)
                 .disabled(isLoading)
-            }
-            else if buttonStyle == .tertiary {
+            case .tertiary(let color):
                 Button {
                     if let buttonAction = buttonAction {
                         buttonAction()
@@ -121,7 +129,10 @@ struct CustomButton: View {
                 } label: {
                     ZStack {
                         HStack {
-                            Text(buttonTitle)
+                            if let title = buttonTitle {
+                                Text(title)
+                                    .lineLimit(1)
+                            }
                             if let systemIconName = buttonSystemIconName {
                                 Image(systemName: systemIconName)
                             }
@@ -138,7 +149,7 @@ struct CustomButton: View {
                         }
                     }
                 }
-                .buttonStyle(TertiaryButtonConfig(isLoading: $isLoading))
+                .buttonStyle(TertiaryButtonConfig(isLoading: $isLoading, buttonColor: color))
                 .cornerRadius(16)
                 .buttonStyle(.plain)
                 .disabled(isLoading)
@@ -174,12 +185,13 @@ struct SecondaryButtonConfig: ButtonStyle {
 }
 struct TertiaryButtonConfig: ButtonStyle {
     @Binding var isLoading: Bool
+    var buttonColor: Color
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .clipShape(Capsule())
-            .background(Color.SEESTURM_GREEN)
+            .background(buttonColor)
             .foregroundStyle(isLoading ? Color.clear : Color.white)
             .font(.subheadline)
     }
@@ -221,7 +233,7 @@ struct TertiaryButtonConfig: ButtonStyle {
 
 #Preview("Tertiary Button") {
     CustomButton(
-        buttonStyle: .tertiary,
+        buttonStyle: .tertiary(),
         buttonTitle: "Test-Button",
         buttonCustomIconName: "midataLogo",
         isLoading: .constant(false)
@@ -229,7 +241,7 @@ struct TertiaryButtonConfig: ButtonStyle {
 }
 #Preview("Tertiary Button Loading") {
     CustomButton(
-        buttonStyle: .tertiary,
+        buttonStyle: .tertiary(),
         buttonTitle: "Test-Button",
         buttonSystemIconName: "house",
         isLoading: .constant(true)

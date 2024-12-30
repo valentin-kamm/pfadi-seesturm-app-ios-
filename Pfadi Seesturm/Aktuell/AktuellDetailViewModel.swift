@@ -10,9 +10,7 @@ import SwiftUI
 @MainActor
 class AktuellDetailViewModel: ObservableObject {
     
-    @Published var post: TransformedAktuellPostResponse = TransformedAktuellPostResponse()
-    @Published var loadingState: SeesturmLoadingState = .none
-    
+    @Published var loadingState: SeesturmLoadingState<TransformedAktuellPostResponse, PfadiSeesturmAppError> = .none
     @Published var currentPostId: Int = 0
     
     private let aktuellNetworkManager = AktuellNetworkManager.shared
@@ -29,8 +27,7 @@ class AktuellDetailViewModel: ObservableObject {
         do {
             let post = try await aktuellNetworkManager.fetchPost(by: id)
             withAnimation {
-                self.post = post.toTransformedPost()
-                self.loadingState = .success
+                self.loadingState = .result(.success(post.toTransformedPost()))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -41,14 +38,14 @@ class AktuellDetailViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.loadingState = .error(error: pfadiSeesturmError)
+                    self.loadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.loadingState = .error(error: pfadiSeesturmError)
+                self.loadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         

@@ -10,8 +10,7 @@ import SwiftUI
 @MainActor
 class PfadijahreViewModel: ObservableObject {
     
-    @Published var pfadijahre: [PfadijahreAlbumResponse] = []
-    @Published var loadingState: SeesturmLoadingState = .none
+    @Published var loadingState: SeesturmLoadingState<[PfadijahreAlbumResponse], PfadiSeesturmAppError> = .none
     
     private let photosNetworkManager = PhotosNetworkManager.shared
     
@@ -24,8 +23,7 @@ class PfadijahreViewModel: ObservableObject {
         do {
             let response = try await photosNetworkManager.fetchPfadijahre()
             withAnimation {
-                self.pfadijahre = response.albums.reversed()
-                self.loadingState = .success
+                self.loadingState = .result(.success(response.albums.reversed()))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -36,14 +34,14 @@ class PfadijahreViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.loadingState = .error(error: pfadiSeesturmError)
+                    self.loadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.loadingState = .error(error: pfadiSeesturmError)
+                self.loadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         

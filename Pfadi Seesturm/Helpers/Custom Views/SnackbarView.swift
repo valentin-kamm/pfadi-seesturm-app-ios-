@@ -44,15 +44,15 @@ struct SnackbarView: View {
                         .onAppear {
                             scheduleDismissal()
                         }
-                        .onTapGesture {
-                            if allowManualDismiss {
-                                cancelAutomaticDismissal()
-                                dismiss()
-                            }
-                        }
                     }
                     .padding(.horizontal)
                     .padding(.bottom, 40)
+                    .onTapGesture {
+                        if allowManualDismiss {
+                            cancelAutomaticDismissal()
+                            dismiss()
+                        }
+                    }
                 }
             }
         }
@@ -145,11 +145,11 @@ extension SnackbarType {
     var info: SnackbarInfo {
         switch self {
         case .error:
-            return SnackbarInfo(backgroundColor: .SEESTURM_RED, icon: Image(systemName: "xmark"), foregroundColor: .white)
+            return SnackbarInfo(backgroundColor: .SEESTURM_RED, icon: Image(systemName: "xmark.circle"), foregroundColor: .white)
         case .info:
             return SnackbarInfo(backgroundColor: .SEESTURM_BLUE, icon: Image(systemName: "info.circle"), foregroundColor: .white)
         case .success:
-            return SnackbarInfo(backgroundColor: .SEESTURM_GREEN, icon: Image(systemName: "checkmark"), foregroundColor: .white)
+            return SnackbarInfo(backgroundColor: .SEESTURM_GREEN, icon: Image(systemName: "checkmark.circle"), foregroundColor: .white)
         }
     }
 }

@@ -10,8 +10,7 @@ import SwiftUI
 @MainActor
 class LuuchtturmViewModel: ObservableObject {
     
-    @Published var documents: [TransformedSeesturmWordpressDocumentResponse] = []
-    @Published var loadingState: SeesturmLoadingState = .none
+    @Published var loadingState: SeesturmLoadingState<[TransformedSeesturmWordpressDocumentResponse], PfadiSeesturmAppError> = .none
     
     private let dokumenteLuuchtturmNetworkManager = DokumenteLuuchtturmNetworkManager.shared
     
@@ -25,8 +24,7 @@ class LuuchtturmViewModel: ObservableObject {
         do {
             let documents = try await dokumenteLuuchtturmNetworkManager.fetchDocuments(type: "luuchtturm")
             withAnimation {
-                self.documents = documents.map { $0.toTransformedDocument() }
-                self.loadingState = .success
+                self.loadingState = .result(.success(documents.map { $0.toTransformedDocument() }))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -37,14 +35,14 @@ class LuuchtturmViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.loadingState = .error(error: pfadiSeesturmError)
+                    self.loadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.loadingState = .error(error: pfadiSeesturmError)
+                self.loadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         

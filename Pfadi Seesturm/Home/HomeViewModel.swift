@@ -16,21 +16,16 @@ class HomeViewModel: ObservableObject {
     private let weatherNetworkManager = WeatherNetworkManager.shared
     
     // loading states
-    @Published var aktuellLoadingState: SeesturmLoadingState = .none
-    @Published var termineLoadingState: SeesturmLoadingState = .none
-    @Published var weatherLoadingState: SeesturmLoadingState = .none
-    @Published var naechsteAktivitaetLoadingStates: [SeesturmStufe : SeesturmNaechsteAktivitaetHomeLoadingState] = [
+    @Published var aktuellLoadingState: SeesturmLoadingState<TransformedAktuellPostResponse, PfadiSeesturmAppError> = .none
+    @Published var termineLoadingState: SeesturmLoadingState<[TransformedCalendarEventResponse], PfadiSeesturmAppError> = .none
+    @Published var weatherLoadingState: SeesturmLoadingState<TransformedWeatherResponse, PfadiSeesturmAppError> = .none
+    @Published var naechsteAktivitaetLoadingStates: [SeesturmStufe : SeesturmLoadingState<TransformedCalendarEventResponse?, PfadiSeesturmAppError>] = [
         .biber: .none,
         .wolf: .none,
         .pfadi: .none,
         .pio: .none
     ]
-    
-    // result variables
-    @Published var aktuellPost: TransformedAktuellPostResponse = TransformedAktuellPostResponse()
-    @Published var events: [TransformedCalendarEventResponse] = []
-    @Published var weather: TransformedWeatherResponse = TransformedWeatherResponse()
-    
+        
     // selected stufen (save if changed)
     private var userDefaultsKeySelectedStufen = "selectedStufen_V2"
     @Published var selectedStufen: Set<SeesturmStufe> = [SeesturmStufe.biber, SeesturmStufe.wolf, SeesturmStufe.pfadi, SeesturmStufe.pio] {
@@ -113,7 +108,7 @@ class HomeViewModel: ObservableObject {
             let response = try await calendarNetworkManager.fetchEvents(calendarId: stufe.calendar.info.calendarId, includePast: false, maxResults: 1)
             let nextActivity = try response.items.first?.toTransformedEvent(calendarTimeZoneIdentifier: response.timeZone)
             withAnimation {
-                self.naechsteAktivitaetLoadingStates[stufe] = .success(aktivitaet: nextActivity)
+                self.naechsteAktivitaetLoadingStates[stufe] = .result(.success(nextActivity))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -124,14 +119,14 @@ class HomeViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.naechsteAktivitaetLoadingStates[stufe] = .error(error: pfadiSeesturmError)
+                    self.naechsteAktivitaetLoadingStates[stufe] = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.naechsteAktivitaetLoadingStates[stufe] = .error(error: pfadiSeesturmError)
+                self.naechsteAktivitaetLoadingStates[stufe] = .result(.failure(pfadiSeesturmError))
             }
         }
     }
@@ -146,8 +141,7 @@ class HomeViewModel: ObservableObject {
         do {
             let forecast = try await weatherNetworkManager.fetchForecast()
             withAnimation {
-                self.weather = forecast.toTransformedWeatherResponse()
-                self.weatherLoadingState = .success
+                self.weatherLoadingState = .result(.success(forecast.toTransformedWeatherResponse()))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -158,14 +152,14 @@ class HomeViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.weatherLoadingState = .error(error: pfadiSeesturmError)
+                    self.weatherLoadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.weatherLoadingState = .error(error: pfadiSeesturmError)
+                self.weatherLoadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         
@@ -181,8 +175,7 @@ class HomeViewModel: ObservableObject {
         do {
             let post = try await aktuellNetworkManager.fetchLatestPost()
             withAnimation {
-                self.aktuellPost = post.posts[0].toTransformedPost()
-                self.aktuellLoadingState = .success
+                self.aktuellLoadingState = .result(.success(post.posts[0].toTransformedPost()))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -193,14 +186,14 @@ class HomeViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.aktuellLoadingState = .error(error: pfadiSeesturmError)
+                    self.aktuellLoadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.aktuellLoadingState = .error(error: pfadiSeesturmError)
+                self.aktuellLoadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         
@@ -219,8 +212,7 @@ class HomeViewModel: ObservableObject {
                 return try item.toTransformedEvent(calendarTimeZoneIdentifier: response.timeZone)
             }
             withAnimation {
-                self.events = transformedEvents
-                self.termineLoadingState = .success
+                self.termineLoadingState = .result(.success(transformedEvents))
             }
         }
         catch let pfadiSeesturmError as PfadiSeesturmAppError {
@@ -231,14 +223,14 @@ class HomeViewModel: ObservableObject {
             }
             else {
                 withAnimation {
-                    self.termineLoadingState = .error(error: pfadiSeesturmError)
+                    self.termineLoadingState = .result(.failure(pfadiSeesturmError))
                 }
             }
         }
         catch {
             let pfadiSeesturmError = PfadiSeesturmAppError.unknownError(message: "Ein unbekannter Fehler ist aufgetreten: \(error.localizedDescription)")
             withAnimation {
-                self.termineLoadingState = .error(error: pfadiSeesturmError)
+                self.termineLoadingState = .result(.failure(pfadiSeesturmError))
             }
         }
         
